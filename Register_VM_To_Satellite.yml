@@ -1,0 +1,53 @@
+---
+- name: Register RHEL to Satellite
+  hosts: pa-uat
+  collections:
+    - community.general
+
+  tasks:
+
+  - name: add Satellite IP in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      line: 10.100.1.121 satellite69dc.imlab.com satellite69dc
+
+  - name: Install the katello from Satellite
+    yum:
+      name: http://satellite69dc.imlab.com/pub/katello-ca-consumer-latest.noarch.rpm
+      state: installed
+      validate_certs: no
+      disable_gpg_check: yes
+
+  - name: Register with activationkey
+    redhat_subscription:
+      state: present
+      activationkey: RHEL7UAT
+      org_id: TECLAB
+
+  - name: Enable repositories
+    rhsm_repository:
+      name: rhel-7-server-satellite-tools-6.10-rpms
+      state: enabled
+
+  - name: Install Katello Tools package
+    yum:
+      name: katello-host-tools
+      state: present
+
+  - name: Install Katello Tools Tracer package
+    yum:
+      name: katello-host-tools-tracer
+      state: present
+
+#  - name: Show subscription_status
+#    debug:
+#      msg: >
+#        Subscription Status: {{ foreman.subscription_status_label }}
+
+#  - name: Show Errata Counts
+#    debug:
+#      msg: >
+#        Bug fixes: {{ foreman.content_facet_attributes.errata_counts.bugfix }},
+#        Security: {{ foreman.content_facet_attributes.errata_counts.security }},
+#        Enhancement: {{ foreman.content_facet_attributes.errata_counts.enhancement }},
+#        Total: {{ foreman.content_facet_attributes.errata_counts.total }}
